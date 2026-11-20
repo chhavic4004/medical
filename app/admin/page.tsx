@@ -16,6 +16,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { readJsonResponse } from "@/lib/apiResponse";
 
 type Clinic = { id: string; name: string };
 
@@ -53,8 +54,9 @@ export default function Admin() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error);
+        const result = await readJsonResponse<{
+          clinics: Clinic[];
+        }>(response);
 
         setClinics(result.clinics);
         if (result.clinics.length > 0) {
@@ -66,7 +68,15 @@ export default function Admin() {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (statsRes.ok) {
-          const statsData = await statsRes.json();
+          const statsData = await readJsonResponse<{
+            stats: {
+              patientsThisWeek: number;
+              appointments: number;
+              noShowRate: string;
+              avgWait: string;
+            };
+            analytics: typeof analytics;
+          }>(statsRes);
           if (statsData.stats) {
             setLiveStats([
               ["Patients this week", String(statsData.stats.patientsThisWeek)],
@@ -117,8 +127,7 @@ export default function Admin() {
         }),
       });
 
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Account creation failed.");
+      const result = await readJsonResponse<{ message: string }>(response);
 
       setMessage(result.message);
       setIsError(false);

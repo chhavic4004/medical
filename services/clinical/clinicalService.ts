@@ -1,5 +1,6 @@
 import { auth } from "@/lib/firebase";
 import type { Prescription } from "@/types";
+import { readJsonResponse } from "@/lib/apiResponse";
 
 async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<T> {
   const currentUser = auth.currentUser;
@@ -18,12 +19,9 @@ async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<T>
     cache: "no-store",
   });
 
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || "Operation failed.");
-  }
+  const data = await readJsonResponse<T>(response);
 
-  return data as T;
+  return data;
 }
 
 export const clinicalService = {

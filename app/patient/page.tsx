@@ -10,6 +10,7 @@ import { clinicalService } from "@/services/clinical/clinicalService";
 import { firebaseAuthService } from "@/services/auth/firebaseAuthService";
 import { auth } from "@/lib/firebase";
 import type { Appointment, Prescription, User } from "@/types";
+import { readJsonResponse } from "@/lib/apiResponse";
 
 interface ClinicDoctor {
   id: string;
@@ -61,11 +62,7 @@ export default function PatientDashboard() {
           cache: "no-store",
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || "Unable to load doctors.");
-        }
+        const data = await readJsonResponse<{ doctors: ClinicDoctor[] }>(response);
 
         if (!cancelled) {
           setDoctors(data.doctors);

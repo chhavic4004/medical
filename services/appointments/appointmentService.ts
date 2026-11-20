@@ -1,5 +1,6 @@
 import { auth } from "@/lib/firebase";
 import type { Appointment } from "@/types";
+import { readJsonResponse } from "@/lib/apiResponse";
 
 async function apiRequest<T>(
   options: RequestInit = {}
@@ -22,13 +23,9 @@ async function apiRequest<T>(
     cache: "no-store",
   });
 
-  const data = await response.json();
+  const data = await readJsonResponse<T>(response);
 
-  if (!response.ok) {
-    throw new Error(data.error || "Appointment request failed.");
-  }
-
-  return data as T;
+  return data;
 }
 
 export const appointmentService = {
@@ -55,10 +52,7 @@ export const appointmentService = {
       cache: "no-store",
     });
 
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || "Appointment request failed.");
-    }
+    const data = await readJsonResponse<{ appointments: Appointment[] }>(response);
 
     return data.appointments;
   },

@@ -38,7 +38,11 @@ export async function GET(request: NextRequest) {
     const doctors = snapshot.docs
       .map((doc) => ({ id: doc.id, ...doc.data() }))
       .filter((doctor: any) => {
-        if (user.role === "admin" || user.role === "patient") return true;
+        if (user.role === "admin") return true;
+
+        if (user.role === "patient") {
+          return doctor.available !== false;
+        }
 
         if (user.role === "receptionist") {
           return doctor.clinicId === user.clinicId;

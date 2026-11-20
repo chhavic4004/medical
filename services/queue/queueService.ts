@@ -9,6 +9,7 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import type { QueueToken, QueueStatus } from "@/types";
+import { readJsonResponse } from "@/lib/apiResponse";
 
 async function apiRequest<T>(
   url: string,
@@ -32,11 +33,7 @@ async function apiRequest<T>(
     cache: "no-store",
   });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error || "Queue request failed.");
-  }
+  const data = await readJsonResponse<T | any>(response);
 
   return data as T;
 }

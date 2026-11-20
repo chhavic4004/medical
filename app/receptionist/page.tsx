@@ -11,6 +11,7 @@ import { clinicalService } from "@/services/clinical/clinicalService";
 import { useQueue } from "@/hooks/useQueue";
 import { auth } from "@/lib/firebase";
 import type { QueueStatus, User, QueueToken, Appointment } from "@/types";
+import { readJsonResponse } from "@/lib/apiResponse";
 
 interface ClinicDoctor {
   id: string;
@@ -58,8 +59,8 @@ export default function Receptionist() {
         cache: "no-store",
       });
 
-      const data = await response.json();
-      if (response.ok && data.doctors) {
+      const data = await readJsonResponse<{ doctors: ClinicDoctor[] }>(response);
+      if (data.doctors) {
         setDoctors(data.doctors);
         if (data.doctors.length > 0 && !doctorId) {
           setDoctorId(data.doctors[0].id);

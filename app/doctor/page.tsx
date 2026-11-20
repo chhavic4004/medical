@@ -10,6 +10,7 @@ import { clinicalService } from "@/services/clinical/clinicalService";
 import { firebaseAuthService } from "@/services/auth/firebaseAuthService";
 import { auth } from "@/lib/firebase";
 import type { User } from "@/types";
+import { readJsonResponse } from "@/lib/apiResponse";
 
 export default function DoctorDashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -51,9 +52,7 @@ export default function DoctorDashboard() {
           cache: "no-store",
         });
 
-        if (!response.ok) throw new Error("Unable to load doctor details.");
-
-        const data = await response.json();
+        const data = await readJsonResponse<{ doctors: any[] }>(response);
         const doctor = data.doctors?.find(
           (item: any) => item.id === doctorId
         );
