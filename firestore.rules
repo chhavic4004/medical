@@ -1,0 +1,123 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function hasUserProfile() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function userProfile() {
+      return get(
+        /databases/$(database)/documents/users/$(request.auth.uid)
+      ).data;
+    }
+
+    function isAdmin() {
+      return hasUserProfile()
+        && userProfile().role == "admin";
+    }
+
+    // USER PROFILES
+    match /users/{uid} {
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly([
+          "uid", "name", "email", "role", "createdAt"
+        ])
+        && request.resource.data.uid == uid
+        && request.resource.data.role == "patient"
+        && request.resource.data.email == request.auth.token.email;
+
+      allow get: if hasUserProfile()
+        && (request.auth.uid == uid || isAdmin());
+
+      allow list: if isAdmin();
+
+      allow update: if (
+        hasUserProfile()
+        && request.auth.uid == uid
+        && request.resource.data.diff(resource.data)
+          .affectedKeys()
+          .hasOnly(["name", "phone", "updatedAt"])
+      ) || isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+    // CLINIC METADATA
+    match /clinics/{clinicId} {
+      allow read: if hasUserProfile();
+      allow write: if false;
+    }
+
+    // DOCTOR METADATA
+    match /doctors/{doctorId} {
+      allow read: if hasUserProfile();
+      allow write: if false;
+    }
+
+    // QUEUE TOKENS: ROLE-BASED REAL-TIME READ ACCESS
+    match /queueTokens/{tokenId} {
+      allow get, list: if hasUserProfile() && (
+        isAdmin()
+
+        || (
+          userProfile().role == "patient"
+          && resource.data.patientId == request.auth.uid
+        )
+
+        || (
+          userProfile().role == "doctor"
+          && resource.data.doctorId == userProfile().doctorId
+        )
+
+        || (
+          userProfile().role == "receptionist"
+          && resource.data.clinicId == userProfile().clinicId
+        )
+      );
+
+      allow create, update, delete: if false;
+    }
+
+    // ALL OTHER DATA IS MANAGED THROUGH SECURED BACKEND APIs
+    match /queueCounters/{id} {
+      allow read, write: if false;
+    }
+
+    match /appointments/{id} {
+      allow read, write: if false;
+    }
+
+    match /appointmentSlots/{id} {
+      allow read, write: if false;
+    }
+
+    match /prescriptions/{id} {
+      allow read, write: if false;
+    }
+
+    match /medicalRecords/{id} {
+      allow read, write: if false;
+    }
+
+    match /medicalDocuments/{id} {
+      allow read, write: if false;
+    }
+
+    match /notifications/{id} {
+      allow read, write: if false;
+    }
+
+    match /auditLogs/{id} {
+      allow read, write: if false;
+    }
+  }
+}
