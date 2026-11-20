@@ -159,8 +159,11 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
 NEXT_PUBLIC_FIREBASE_APP_ID=...
 ```
 
-Set `FIREBASE_SERVICE_ACCOUNT_PATH` to the absolute path of the service-account
-JSON file. Keep that file outside the repository, and never commit it.
+For local development, set `FIREBASE_SERVICE_ACCOUNT_PATH` to the absolute
+path of the service-account JSON file. For Vercel, use
+`FIREBASE_SERVICE_ACCOUNT_JSON` and paste the complete JSON object as a
+server-only environment variable. Keep the file outside the repository, and
+never commit it.
 
 On Windows PowerShell:
 
@@ -181,6 +184,37 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Deploying to Vercel
+
+1. Push the project to GitHub and open [Vercel](https://vercel.com).
+2. Select **Add New Project**, import
+   `chhavic4004/medical`, and keep the detected Next.js settings.
+3. Add the following environment variables in **Settings → Environment
+   Variables** for Production, Preview, and Development as needed:
+
+   ```text
+   NEXT_PUBLIC_FIREBASE_API_KEY
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+   NEXT_PUBLIC_FIREBASE_APP_ID
+   FIREBASE_SERVICE_ACCOUNT_JSON
+   ```
+
+   The first six values come from Firebase Project settings. For
+   `FIREBASE_SERVICE_ACCOUNT_JSON`, paste the complete downloaded service
+   account JSON. Mark it as a sensitive/server-only variable; do not prefix it
+   with `NEXT_PUBLIC_`.
+4. Click **Deploy**. Vercel runs `npm run build` automatically.
+5. After deployment, open the Vercel URL and test `/login`. Add the deployed
+   domain to Firebase Authentication's authorized domains if Firebase rejects
+   the sign-in request.
+
+The server-side Firebase Admin client supports both the local file path and the
+Vercel JSON environment variable. After changing environment variables, create
+a new deployment because Vercel applies them at build/runtime deployment time.
 
 ## Firebase bootstrap
 

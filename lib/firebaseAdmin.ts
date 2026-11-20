@@ -13,14 +13,17 @@ function getAdminApp() {
 
   if (existingApp) return existingApp;
 
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   const keyPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
 
-  if (!keyPath) {
-    throw new Error("Missing Firebase service account path.");
+  if (!serviceAccountJson && !keyPath) {
+    throw new Error(
+      "Missing Firebase service account configuration. Set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH."
+    );
   }
 
   const serviceAccount = JSON.parse(
-    readFileSync(keyPath, "utf8")
+    serviceAccountJson ?? readFileSync(keyPath!, "utf8")
   );
 
   return initializeApp(
